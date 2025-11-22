@@ -1,17 +1,13 @@
 // --- UPDATES CONFIGURATION ---
 const updatesData = [
   { 
-    version: "v1.4", 
+    version: "v1.8", 
     date: "Nov 23, 2025", 
     changes: [
-      "Fixed Anti-Cheat 'False Positives'", 
-      "Added Console Command Trap"
+      "Updated Anti-Cheat: Now wipes EVERYTHING (Buildings, CPS, etc)",
+      "Removed all the updates in the update log (it was getting messy in the code)"
     ] 
-  },
-  { version: "v1.3", date: "Nov 22, 2025", changes: ["Added Infinite Numbers", "Enhanced Anti-Cheat"] },
-  { version: "v1.2", date: "Nov 22, 2025", changes: ["Added ANTI-CHEAT System", "Polished UI"] },
-  { version: "v1.1", date: "Nov 22, 2025", changes: ["Added Help Tab", "Added Bad Games loading screen"] },
-  { version: "v1.0", date: "Nov 22, 2025", changes: ["Initial Release"] }
+  }
 ];
 
 // --- CONFIG ---
@@ -31,7 +27,6 @@ let internalGame = {
 };
 
 // --- THE TRAP (The Fake Variable) ---
-// If anyone types "game.cookies =" in the console, this Proxy catches them.
 var game = new Proxy(internalGame, {
   set: function(target, prop, value) {
     if (prop === 'cookies' || prop === 'prestigeLevel') {
@@ -43,6 +38,7 @@ var game = new Proxy(internalGame, {
   }
 });
 
+let previousCookieCount = 0;
 let currentPage = 1;
 const updatesPerPage = 3; 
 const costs = { cursor: 15, grandma: 100, farm: 1100, mine: 12000, factory: 130000 };
@@ -54,16 +50,30 @@ const els = {
   homeScreen: document.getElementById('homeScreen'),
   upgradesScreen: document.getElementById('upgradesScreen'),
   prestigeScreen: document.getElementById('prestigeScreen'),
+  casinoScreen: document.getElementById('casinoScreen'),
   updatesScreen: document.getElementById('updatesScreen'),
   helpScreen: document.getElementById('helpScreen'),
+  
   navUpgradesBtn: document.getElementById('navUpgradesBtn'),
   navPrestigeBtn: document.getElementById('navPrestigeBtn'),
+  navCasinoBtn: document.getElementById('navCasinoBtn'),
   navUpdatesBtn: document.getElementById('navUpdatesBtn'),
   navHelpBtn: document.getElementById('navHelpBtn'),
+  
   backToHomeFromUpgrades: document.getElementById('backToHomeFromUpgrades'),
   backToHomeFromPrestige: document.getElementById('backToHomeFromPrestige'),
+  backToHomeFromCasino: document.getElementById('backToHomeFromCasino'),
   backToHomeFromUpdates: document.getElementById('backToHomeFromUpdates'),
   backToHomeFromHelp: document.getElementById('backToHomeFromHelp'),
+  
+  // Casino Elements
+  slot1: document.getElementById('slot1'),
+  slot2: document.getElementById('slot2'),
+  slot3: document.getElementById('slot3'),
+  betInput: document.getElementById('betInput'),
+  gambleBtn: document.getElementById('gambleBtn'),
+  casinoResult: document.getElementById('casinoResult'),
+
   updateContentArea: document.getElementById('updateContentArea'),
   prevPageBtn: document.getElementById('prevPageBtn'),
   nextPageBtn: document.getElementById('nextPageBtn'),
@@ -101,24 +111,45 @@ function initGame() {
 setInterval(() => {
   if (!gameLoaded) return; 
   
-  // Note: The math-based Anti-Cheat is GONE.
-  // You can now earn infinite cookies legitimately without crashing.
+  // Anti-Cheat Logic
+  const possibleGain = calculateCPS() + (calculateClickPower() * 60) + 50000;
+  const actualGain = internalGame.cookies - previousCookieCount;
+
+  if (actualGain > possibleGain && previousCookieCount > 0) {
+     triggerAntiCheat();
+  }
+  
+  if (internalGame.cookies === Infinity || isNaN(internalGame.cookies)) {
+    triggerAntiCheat();
+  }
+
+  previousCookieCount = internalGame.cookies;
 
   const cps = calculateCPS();
-  internalGame.cookies += cps; // Use internalGame so we don't trigger the trap
+  internalGame.cookies += cps; 
   internalGame.lastSaveTime = Date.now();
   updateUI();
   saveGame(); 
 }, 1000);
 
 function triggerAntiCheat() {
-  // Punishment
+  // 1. Wipe Cookies & Prestige
   internalGame.cookies = 0;
   internalGame.prestigeLevel = 0; 
   internalGame.ownedUpgrades = []; 
-  saveGame();
+  
+  // 2. Wipe Buildings (Resets CPS)
+  internalGame.cursors = 0;
+  internalGame.grandmas = 0;
+  internalGame.farms = 0;
+  internalGame.mines = 0;
+  internalGame.factories = 0;
 
-  // Scary Screen
+  // 3. Save
+  saveGame();
+  updateUI();
+
+  // 4. Show Red Screen
   els.loadingScreen.style.display = 'flex';
   els.loadingScreen.classList.remove('fade-out');
   els.loadingScreen.classList.add('cheater-screen');
@@ -127,13 +158,102 @@ function triggerAntiCheat() {
   const p = els.loadingScreen.querySelector('.loading-text');
   h1.textContent = "CHEATER DETECTED";
   if(p) {
-    p.textContent = "Oh crumbs! It looks like you tried to bypass the hard work of baking by modifying the laws of the universe. We detected a console command that breaks the rules of the kitchen. Unfortunately, to keep things fair for honest bakers, we had to toss your entire stash into the bin and reset your progress. Please stick to clicking next time!";
+    p.textContent = "Total Wipe Initiated. Cookies, Buildings, and Prestige have been deleted for violating the laws of physics.";
     p.style.color = "#fff";
     p.style.fontWeight = "bold";
     p.style.animation = "none"; 
     p.style.padding = "0 20px"; 
     p.style.lineHeight = "1.5";
   }
+}
+
+// --- CASINO LOGIC ---
+els.gambleBtn.addEventListener('click', spinSlots);
+
+function spinSlots() {
+  const bet = parseInt(els.betInput.value);
+
+  // Validation
+  if (isNaN(bet) || bet <= 0) {
+    els.casinoResult.textContent = "Enter a valid bet!";
+    return;
+  }
+  if (bet > internalGame.cookies) {
+    els.casinoResult.textContent = "Not enough cookies!";
+    return;
+  }
+
+  // Deduct Bet
+  internalGame.cookies -= bet;
+  updateUI();
+  els.gambleBtn.disabled = true; 
+  els.casinoResult.textContent = "Spinning...";
+
+  // Animation Loop
+  let spins = 0;
+  const maxSpins = 20; 
+  const interval = setInterval(() => {
+    els.slot1.textContent = Math.floor(Math.random() * 10);
+    els.slot2.textContent = Math.floor(Math.random() * 10);
+    els.slot3.textContent = Math.floor(Math.random() * 10);
+    spins++;
+
+    if (spins >= maxSpins) {
+      clearInterval(interval);
+      finalizeSpin(bet);
+    }
+  }, 100);
+}
+
+function finalizeSpin(bet) {
+  // Generate Final Numbers
+  const n1 = Math.floor(Math.random() * 10);
+  const n2 = Math.floor(Math.random() * 10);
+  const n3 = Math.floor(Math.random() * 10);
+
+  // Display them
+  els.slot1.textContent = n1;
+  els.slot2.textContent = n2;
+  els.slot3.textContent = n3;
+
+  els.gambleBtn.disabled = false; 
+
+  // --- WIN LOGIC ---
+  
+  // 7-7-7 Jackpot (34x)
+  if (n1 === 7 && n2 === 7 && n3 === 7) {
+    const win = bet * 34;
+    internalGame.cookies += win;
+    els.casinoResult.textContent = `JACKPOT 777! Won ${formatNumber(win)}!`;
+    els.casinoResult.style.color = "gold";
+    saveGame();
+    return;
+  }
+
+  // Any Triple (e.g. 222, 555) = 8x
+  if (n1 === n2 && n2 === n3) {
+    const win = bet * 8;
+    internalGame.cookies += win;
+    els.casinoResult.textContent = `TRIPLE! Won ${formatNumber(win)}!`;
+    els.casinoResult.style.color = "#2ecc71";
+    saveGame();
+    return;
+  }
+
+  // Any Pair Side-by-Side (e.g. 33x or x55) = 3x
+  if (n1 === n2 || n2 === n3) {
+    const win = bet * 3;
+    internalGame.cookies += win;
+    els.casinoResult.textContent = `PAIR! Won ${formatNumber(win)}!`;
+    els.casinoResult.style.color = "#3498db";
+    saveGame();
+    return;
+  }
+
+  // Loss
+  els.casinoResult.textContent = "Lost! Try again.";
+  els.casinoResult.style.color = "#e74c3c";
+  saveGame();
 }
 
 // --- MATH & INFINITE FORMATTING ---
@@ -209,17 +329,16 @@ function updateBuildingUI(type) {
 
 // --- ACTIONS ---
 function clickCookie() {
-  internalGame.cookies += calculateClickPower(); // LEGITIMATE GAIN
+  internalGame.cookies += calculateClickPower();
   updateUI();
   saveGame(); 
 }
 
 function buyBuilding(type) {
-  const currentCount = internalGame[type + 's'];
-  const baseCost = costs[type];
-  const currentCost = Math.floor(baseCost * Math.pow(1.15, currentCount));
-  if (internalGame.cookies >= currentCost) {
-    internalGame.cookies -= currentCost;
+  const count = internalGame[type + 's'];
+  const cost = Math.floor(costs[type] * Math.pow(1.15, count));
+  if (internalGame.cookies >= cost) {
+    internalGame.cookies -= cost;
     internalGame[type + 's']++;
     updateUI();
     saveGame(); 
@@ -345,20 +464,24 @@ function switchScreen(screenName) {
   els.homeScreen.classList.add('hidden');
   els.upgradesScreen.classList.add('hidden');
   els.prestigeScreen.classList.add('hidden');
+  els.casinoScreen.classList.add('hidden');
   els.updatesScreen.classList.add('hidden');
   els.helpScreen.classList.add('hidden'); 
   if (screenName === 'home') els.homeScreen.classList.remove('hidden');
   if (screenName === 'upgrades') els.upgradesScreen.classList.remove('hidden');
   if (screenName === 'prestige') els.prestigeScreen.classList.remove('hidden');
+  if (screenName === 'casino') els.casinoScreen.classList.remove('hidden');
   if (screenName === 'updates') els.updatesScreen.classList.remove('hidden');
   if (screenName === 'help') els.helpScreen.classList.remove('hidden'); 
 }
 els.navUpgradesBtn.addEventListener('click', () => switchScreen('upgrades'));
 els.navPrestigeBtn.addEventListener('click', () => switchScreen('prestige'));
+els.navCasinoBtn.addEventListener('click', () => switchScreen('casino'));
 els.navUpdatesBtn.addEventListener('click', () => switchScreen('updates'));
 els.navHelpBtn.addEventListener('click', () => switchScreen('help')); 
 els.backToHomeFromUpgrades.addEventListener('click', () => switchScreen('home'));
 els.backToHomeFromPrestige.addEventListener('click', () => switchScreen('home'));
+els.backToHomeFromCasino.addEventListener('click', () => switchScreen('home'));
 els.backToHomeFromUpdates.addEventListener('click', () => switchScreen('home'));
 els.backToHomeFromHelp.addEventListener('click', () => switchScreen('home')); 
 
