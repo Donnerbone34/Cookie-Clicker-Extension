@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- === LOADING SCREEN === -->
+  <div id="loadingScreen">
+    <h1>Bad Games</h1>
+    <img src="images/badgameslogo.png" alt="Bad Games Logo">
+    <p class="loading-text">Loading...</p>
+  </div>
+
+  <!-- TOP NAVIGATION -->
+  <div class="top-nav">
+    <button id="navUpgradesBtn">Upgrades</button>
+    <button id="navPrestigeBtn">Prestige</button>
+    <button id="navUpdatesBtn">Updates</button>
+    <button id="navHelpBtn">Help</button>
+  </div>
+
+  <!-- === HOME SCREEN === -->
+  <div id="homeScreen">
+    <div class="header">
+      <h2><span id="cookieDisplay">0</span> Cookies</h2>
+      <div class="stats-row">
+        <p class="stat-text">per second: <span id="cpsDisplay">0.0</span></p>
+        <p class="stat-text">per click: <span id="cpcDisplay">1.0</span></p>
+      </div>
+    </div>
+    
+    <div class="cookie-container">
+      <img src="images/cookie.png" id="bigCookie" alt="Cookie">
+    </div>
+    
+    <div id="messageBox"></div>
+    <hr>
+    
+    <!-- Building Store -->
+    <div class="store">
+      <div class="upgrade" id="buyCursor">
+        <img src="images/cursor.png" class="icon-img">
+        <div class="info"><b>Cursor</b><div class="cost">Cost: <span id="cursorCost">15</span></div></div>
+        <div class="count" id="cursorCount">0</div>
+      </div>
+      <div class="upgrade" id="buyGrandma">
+        <img src="images/grandma.png" class="icon-img">
+        <div class="info"><b>Grandma</b><div class="cost">Cost: <span id="grandmaCost">100</span></div></div>
+        <div class="count" id="grandmaCount">0</div>
+      </div>
+      <div class="upgrade" id="buyFarm">
+        <img src="images/farm.png" class="icon-img">
+        <div class="info"><b>Farm</b><div class="cost">Cost: <span id="farmCost">1100</span></div></div>
+        <div class="count" id="farmCount">0</div>
+      </div>
+      <div class="upgrade" id="buyMine">
+        <img src="images/mine.png" class="icon-img">
+        <div class="info"><b>Mine</b><div class="cost">Cost: <span id="mineCost">12000</span></div></div>
+        <div class="count" id="mineCount">0</div>
+      </div>
+      <div class="upgrade" id="buyFactory">
+        <img src="images/factory.png" class="icon-img">
+        <div class="info"><b>Factory</b><div class="cost">Cost: <span id="factoryCost">130000</span></div></div>
+        <div class="count" id="factoryCount">0</div>
+      </div>
+    </div>
+    
+    <button id="resetBtn">Reset Save</button>
+  </div>
+
+  <!-- === UPGRADES SCREEN === -->
+  <div id="upgradesScreen" class="hidden">
+    <div class="header">
+      <h2>Click Upgrades</h2>
+      <p class="subtext" style="margin-bottom:0;">Boost your clicking power!</p>
+    </div>
+    <div class="store" id="clickUpgradeList"></div>
+    <div class="pagination-controls">
+      <button class="back-btn" id="backToHomeFromUpgrades">Back</button>
+    </div>
+  </div>
+
+  <!-- === PRESTIGE SCREEN === -->
+  <div id="prestigeScreen" class="hidden">
+    <div class="header">
+      <h2>Prestige</h2>
+      <p class="subtext" style="margin-bottom:0;">Ascend to a higher plane.</p>
+    </div>
+    <div class="prestige-info">
+      <p>Current Multiplier: <span id="currentMultDisplay">1x</span></p>
+      <p>Prestige Level: <span id="prestigeLevelDisplay">0</span></p>
+      <hr>
+      <p><b>REQUIREMENT:</b><br>1,000,000 Cookies</p>
+      <p class="warning">Warning: Clicking Prestige will reset your Cookies, Buildings, and Upgrades.</p>
+      <p class="reward">Reward: Permanent 2x Multiplier (increases by +0.5x each time).</p>
+    </div>
+    <button id="doPrestigeBtn">PRESTIGE</button>
+    <div class="pagination-controls">
+      <button class="back-btn" id="backToHomeFromPrestige">Back</button>
+    </div>
+  </div>
+
+  <!-- === UPDATES SCREEN === -->
+  <div id="updatesScreen" class="hidden">
+    <div class="header">
+      <h2>Update Log</h2>
+      <p class="subtext" style="margin-bottom:0;">What's new?</p>
+    </div>
+    <div id="updateContentArea" class="update-container"></div>
+    <div class="pagination-controls">
+      <button class="back-btn" id="backToHomeFromUpdates">Back</button>
+      <div class="page-arrows">
+        <button id="prevPageBtn">Prev</button>
+        <span id="pageIndicator">1/1</span>
+        <button id="nextPageBtn">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- === HELP SCREEN === -->
+  <div id="helpScreen" class="hidden">
+    <div class="header">
+      <h2>Help Guide</h2>
+      <p class="subtext" style="margin-bottom:0;">How to play</p>
+    </div>
+    
+    <div class="store help-content">
+      <h3>Welcome to Cookie Clicker!</h3>
+      <p>The goal is simple: Bake as many cookies as you can! Here is everything you need to know to become the ultimate baker.</p>
+      
+      <h3>The Basics</h3>
+      <p>Click the big cookie to earn cookies. You can also press <b>ENTER</b> on your keyboard! Use these cookies to buy items in the store. The more items you have, the faster you get cookies.</p>
+      
+      <h3>Buildings</h3>
+      <p>Buildings bake cookies for you automatically, even when you aren't clicking!</p>
+      <ul>
+        <li><b>Cursor:</b> Clicks for you (Low efficiency).</li>
+        <li><b>Grandma:</b> A nice grandma to bake cookies.</li>
+        <li><b>Farm:</b> Grows cookies from cookie seeds.</li>
+        <li><b>Mine:</b> Mines cookie dough from the earth.</li>
+        <li><b>Factory:</b> Mass produces cookies.</li>
+      </ul>
+
+      <h3>Upgrades</h3>
+      <p>Click the "Upgrades" tab to buy special Mice. These increase your <b>Cookies Per Click</b>. Buying a Plastic Mouse or Iron Mouse makes your manual clicks much stronger!</p>
+
+      <h3>Prestige</h3>
+      <p>Once you reach <b>1 Million Cookies</b>, you can Prestige. This resets your game (you lose all buildings and cookies), but you gain a permanent <b>Multiplier</b>. This makes your next run much faster!</p>
+
+      <h3>Saving</h3>
+      <p>The game saves automatically every second, and immediately whenever you buy something or click the cookie.</p>
+    </div>
+
+    <div class="pagination-controls">
+      <button class="back-btn" id="backToHomeFromHelp">Back</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

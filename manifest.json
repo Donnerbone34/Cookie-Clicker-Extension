@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Cookie Clicker Extension",
+  "version": "1.4",
+  "description": "Click cookies, buy upgrades, and get rich!",
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "Images/cookie.png"
+  }
+}
