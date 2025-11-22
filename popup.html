@@ -16,6 +16,7 @@
   <div class="top-nav">
     <button id="navUpgradesBtn">Upgrades</button>
     <button id="navPrestigeBtn">Prestige</button>
+    <button id="navCasinoBtn">Casino</button>
     <button id="navUpdatesBtn">Updates</button>
     <button id="navHelpBtn">Help</button>
   </div>
@@ -101,6 +102,39 @@
     </div>
   </div>
 
+  <!-- === CASINO SCREEN === -->
+  <div id="casinoScreen" class="hidden">
+    <div class="header">
+      <h2>Casino</h2>
+      <p class="subtext" style="margin-bottom:0;">Risk it all!</p>
+    </div>
+    
+    <div class="store casino-container">
+      <div class="slots-row">
+        <div class="slot-frame" id="slot1">7</div>
+        <div class="slot-frame" id="slot2">7</div>
+        <div class="slot-frame" id="slot3">7</div>
+      </div>
+      
+      <p id="casinoResult" class="casino-msg">Enter your bet below</p>
+      
+      <div class="bet-controls">
+        <input type="number" id="betInput" placeholder="Enter cookies..." min="1">
+        <button id="gambleBtn">GAMBLE</button>
+      </div>
+
+      <div class="payout-info">
+        <p><b>7 - 7 - 7</b> = 34x</p>
+        <p><b>Any Triple</b> = 8x</p>
+        <p><b>Any Pair</b> = 3x</p>
+      </div>
+    </div>
+
+    <div class="pagination-controls">
+      <button class="back-btn" id="backToHomeFromCasino">Back</button>
+    </div>
+  </div>
+
   <!-- === UPDATES SCREEN === -->
   <div id="updatesScreen" class="hidden">
     <div class="header">
@@ -129,6 +163,9 @@
       <h3>Welcome to Cookie Clicker!</h3>
       <p>The goal is simple: Bake as many cookies as you can! Here is everything you need to know to become the ultimate baker.</p>
       
+      <h3>Casino</h3>
+      <p>Feeling lucky? Bet your cookies in the Casino slot machine. Match 2 numbers for a small win, or hit 777 for the jackpot!</p>
+
       <h3>The Basics</h3>
       <p>Click the big cookie to earn cookies. You can also press <b>ENTER</b> on your keyboard! Use these cookies to buy items in the store. The more items you have, the faster you get cookies.</p>
       
