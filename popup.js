@@ -1,11 +1,20 @@
 // --- UPDATES CONFIGURATION ---
 const updatesData = [
   { 
+    version: "v1.9", 
+    date: "Nov 23, 2025", 
+    changes: [
+      "Fixed Factory purchase bug",
+      "Prestige now gives points based on total cookies",
+      "Fixed Anti-Cheat triggering on Casino wins"
+    ] 
+  },
+  { 
     version: "v1.8", 
     date: "Nov 23, 2025", 
     changes: [
-      "Updated Anti-Cheat: Now wipes EVERYTHING (Buildings, CPS, etc)",
-      "Removed all the updates in the update log (it was getting messy in the code)"
+      "Added the wipe thing you made",
+      "Removed all the updates in the update log"
     ] 
   }
 ];
@@ -133,12 +142,10 @@ setInterval(() => {
 }, 1000);
 
 function triggerAntiCheat() {
-  // 1. Wipe Cookies & Prestige
+  // 1. Wipe Everything
   internalGame.cookies = 0;
   internalGame.prestigeLevel = 0; 
   internalGame.ownedUpgrades = []; 
-  
-  // 2. Wipe Buildings (Resets CPS)
   internalGame.cursors = 0;
   internalGame.grandmas = 0;
   internalGame.farms = 0;
@@ -219,40 +226,43 @@ function finalizeSpin(bet) {
   els.gambleBtn.disabled = false; 
 
   // --- WIN LOGIC ---
-  
+  let win = 0;
+  let message = "";
+  let color = "";
+
   // 7-7-7 Jackpot (34x)
   if (n1 === 7 && n2 === 7 && n3 === 7) {
-    const win = bet * 34;
-    internalGame.cookies += win;
-    els.casinoResult.textContent = `JACKPOT 777! Won ${formatNumber(win)}!`;
-    els.casinoResult.style.color = "gold";
-    saveGame();
-    return;
+    win = bet * 34;
+    message = `JACKPOT 777! Won ${formatNumber(win)}!`;
+    color = "gold";
   }
-
   // Any Triple (e.g. 222, 555) = 8x
-  if (n1 === n2 && n2 === n3) {
-    const win = bet * 8;
-    internalGame.cookies += win;
-    els.casinoResult.textContent = `TRIPLE! Won ${formatNumber(win)}!`;
-    els.casinoResult.style.color = "#2ecc71";
-    saveGame();
-    return;
+  else if (n1 === n2 && n2 === n3) {
+    win = bet * 8;
+    message = `TRIPLE! Won ${formatNumber(win)}!`;
+    color = "#2ecc71";
   }
-
   // Any Pair Side-by-Side (e.g. 33x or x55) = 3x
-  if (n1 === n2 || n2 === n3) {
-    const win = bet * 3;
-    internalGame.cookies += win;
-    els.casinoResult.textContent = `PAIR! Won ${formatNumber(win)}!`;
-    els.casinoResult.style.color = "#3498db";
+  else if (n1 === n2 || n2 === n3) {
+    win = bet * 3;
+    message = `PAIR! Won ${formatNumber(win)}!`;
+    color = "#3498db";
+  }
+  else {
+    // Loss
+    els.casinoResult.textContent = "Lost! Try again.";
+    els.casinoResult.style.color = "#e74c3c";
     saveGame();
-    return;
+    return; // Exit if lost
   }
 
-  // Loss
-  els.casinoResult.textContent = "Lost! Try again.";
-  els.casinoResult.style.color = "#e74c3c";
+  // Handle Win
+  // IMPORTANT: Update previousCookieCount to prevent Anti-Cheat from thinking we cheated
+  previousCookieCount += win; 
+  internalGame.cookies += win;
+  
+  els.casinoResult.textContent = message;
+  els.casinoResult.style.color = color;
   saveGame();
 }
 
@@ -320,9 +330,16 @@ function updateUI() {
 function updateBuildingUI(type) {
   const countEl = document.getElementById(type + 'Count');
   const costEl = document.getElementById(type + 'Cost');
-  let count = internalGame[type + 's'];
+  
+  // FIX: Handle 'factories' plural correctly
+  let propName = type + 's';
+  if (type === 'factory') propName = 'factories';
+
+  let count = internalGame[propName];
   if (isNaN(count)) count = 0;
+  
   const currentCost = Math.floor(costs[type] * Math.pow(1.15, count));
+  
   if(countEl) countEl.textContent = count;
   if(costEl) costEl.textContent = formatNumber(currentCost);
 }
@@ -335,11 +352,16 @@ function clickCookie() {
 }
 
 function buyBuilding(type) {
-  const count = internalGame[type + 's'];
+  // FIX: Handle 'factories' plural correctly
+  let propName = type + 's';
+  if (type === 'factory') propName = 'factories';
+
+  const count = internalGame[propName];
   const cost = Math.floor(costs[type] * Math.pow(1.15, count));
+  
   if (internalGame.cookies >= cost) {
     internalGame.cookies -= cost;
-    internalGame[type + 's']++;
+    internalGame[propName]++;
     updateUI();
     saveGame(); 
   } else {
@@ -365,8 +387,15 @@ function performPrestige() {
     showMessage("Need 1 Million Cookies!");
     return;
   }
-  if (confirm("Are you sure? You will lose all items but gain a Multiplier.")) {
-    internalGame.prestigeLevel++;
+  
+  // NEW: Calculate Prestige gain based on total cookies
+  // 1 Million cookies = 1 Level. 100M = 100 Levels.
+  const levelsToGain = Math.floor(internalGame.cookies / 1000000);
+
+  if (confirm(`Are you sure? You will lose items but gain ${levelsToGain} Prestige Levels!`)) {
+    internalGame.prestigeLevel += levelsToGain;
+    
+    // Reset Game State
     internalGame.cookies = 0;
     internalGame.cursors = 0;
     internalGame.grandmas = 0;
@@ -374,6 +403,7 @@ function performPrestige() {
     internalGame.mines = 0;
     internalGame.factories = 0;
     internalGame.ownedUpgrades = [];
+    
     saveGame(); 
     renderUpgradeList(); 
     updateUI();
@@ -405,6 +435,8 @@ function loadGame() {
           internalGame[key] = 0;
         }
       });
+      
+      previousCookieCount = internalGame.cookies;
       
       const now = Date.now();
       const lastSave = internalGame.lastSaveTime || now;
